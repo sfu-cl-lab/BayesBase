@@ -1,5 +1,6 @@
 package ca.sfu.cs.factorbase.learning;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
 
@@ -1518,8 +1519,8 @@ public class CountsManager {
         Map<String, String> tableAliases = mapAliases(fromTables);
 
         int maxR = 0;
-        int avgD = 0;
-        int maxD = 0;
+        BigDecimal avgD = new BigDecimal(0);
+        BigDecimal maxD = new BigDecimal(0);
         Set<String> rtables = new HashSet<String>();
         String[] equalities = whereConditions.split(AND_SEPARATOR);
 
@@ -1532,9 +1533,9 @@ public class CountsManager {
                 String databaseTable = tableAliases.get(tableAlias);
                 if (relationTables.contains(tableAlias)) {
                     // If the table reference is a relationship table, then compute the degree information.
-                    int[] degreeInfo = computeDegree(databaseTable, tableColRef[1]);
-                    avgD = Math.max(avgD, degreeInfo[0]);
-                    maxD = Math.max(maxD,  degreeInfo[1]);
+                    BigDecimal[] degreeInfo = computeDegree(databaseTable, tableColRef[1]);
+                    avgD = avgD.max(degreeInfo[0]);
+                    maxD = maxD.max(degreeInfo[1]);
                     rtables.add(tableAlias);
                 } else {
                     // If the table reference is an entity table, then get the total number of rows in the table.
@@ -1552,10 +1553,10 @@ public class CountsManager {
      *
      * @param table - name of the table to get the degree information from.
      * @param column - the column in the given table to get the degree information for.
-     * @return {@code int[]} containing the average degree (int[0]) and the max degree (int[1]).
+     * @return {@code BigDecimal[]} containing the average degree (BigDecimal[0]) and the max degree (BigDecimal[1]).
      * @throws SQLException if an error occurs when executing the queries.
      */
-    private static int[] computeDegree(String table, String column) throws SQLException {
+    private static BigDecimal[] computeDegree(String table, String column) throws SQLException {
         String degreeQuery =
             "SELECT " +
                 "AVG(TOTAL) AS AVG, " +
@@ -1575,9 +1576,9 @@ public class CountsManager {
             ResultSet results = statement.executeQuery(degreeQuery)
         ) {
             results.next();
-            int[] stats = new int[2];
-            stats[0] = results.getInt("AVG");
-            stats[1] = results.getInt("MAX");
+            BigDecimal[] stats = new BigDecimal[2];
+            stats[0] = results.getBigDecimal("AVG");
+            stats[1] = results.getBigDecimal("MAX");
 
             return stats;
         }
